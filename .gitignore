@@ -1,0 +1,12 @@
+node_modules
+/dist
+.tmp
+.sass-cache
+/app/bower_components
+.idea
+/app/*.html
+/.gruntconfig.json
+/app/styles/vendor
+# Ignore deploy passwords and config
+/config/deploy.rb
+/app/styles/fonts/fontawesome*
