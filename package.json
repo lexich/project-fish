@@ -34,7 +34,9 @@
     "html": "~0.0.7",
     "http-proxy": "~0.10.3",
     "url": "~0.7.9",
-    "grunt-text-replace": "~0.3.7"
+    "grunt-text-replace": "~0.3.7",
+    "grunt-contrib-jade": "~0.8.0",
+    "grunt-connect-proxy": "~0.1.6"
   },
   "engines": {
     "node": ">=0.8.0"

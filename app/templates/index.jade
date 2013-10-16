@@ -1,0 +1,16 @@
+extends base/base
+
+append head
+
+append content
+  style.
+    .nosaas.sass{
+      display:none;
+    }
+    .nosaas{
+      display: inline;
+    }
+  p.nosaas.sass Sass works
+  p.nosaas Sass doesn't works
+  p
+    img(src='/images/work-in-progress.png', width='120', alt='Картинки')

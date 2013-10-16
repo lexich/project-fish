@@ -1,17 +1,18 @@
 {
   "name": "projectFish",
   "version": "0.0.0",
-  "dependencies": {    
+  "dependencies": {
     "requirejs": "~2.1.8",
     "modernizr": "~2.6.2",
-    "jquery": "~1.10.2",    
+    "jquery": "~1.10.2",
     "underscore": "~1.5.2",
     "backbone": "~1.0.0",
     "log4j-simple-amd": "~0.0.7",
     "backbone.epoxy": "~1.0.2",
     "font-awesome": "~3.2.1",
     "animatecss": "https://github.com/daneden/animate.css.git",
-    "backbone-extention": "~0.0.1"
+    "backbone-extention": "~0.0.1",
+    "require-jade": "~0.0.3"
   },
   "devDependencies": {}
 }

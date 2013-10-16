@@ -60,10 +60,28 @@ module.exports = (grunt) ->
             bare: true
         ]
 
+    jade:
+      dist:
+        options:
+          pretty:true
+          data:-> {}
+          filters:{}
+        files:[
+          expand:true
+          src:"*.jade"
+          cwd: "app/templates"
+          dest: "app"
+          ext: ".html"
+        ]
+
     watch:
       templates:
-        files: ["<%= yeoman.app %>/templates/{,*/}*.html"]
-        tasks: ["swig:dist"]
+        files: ["<%= yeoman.app %>/templates/{,*/}*.jade"]
+        tasks: ["jade:dist"]
+
+      clientTemplates:
+        files: ["<%= yeoman.app %>/scripts/templates/{,*/}*.jade"]
+        tasks: ["copy:jade"]
 
       coffee:
         files: ["<%= yeoman.app %>/scripts/{,*/}*.coffee","<%= yeoman.app %>/scripts/**/{,*/}*.coffee"]
@@ -90,7 +108,7 @@ module.exports = (grunt) ->
     connect:
       options:
         port: "<%= yeoman.connect.options.port %>"
-        
+
         # change this to '0.0.0.0' to access the server from outside
         hostname: "localhost"
 
@@ -119,7 +137,7 @@ module.exports = (grunt) ->
 
     open:
       server:
-        path: "http://localhost:<%= proxy.dist.port %><%= yeoman.open.server.path %>"
+        path: "http://localhost:<%= yeoman.proxy.port %><%= yeoman.open.server.path %>"
 
     clean:
       dist:
@@ -155,8 +173,8 @@ module.exports = (grunt) ->
           src: "{,*/}*.coffee"
           dest: ".tmp/scripts"
           ext: ".js"
-        ] 
-        options: "<%= yeoman.coffee.options %>"      
+        ]
+        options: "<%= yeoman.coffee.options %>"
 
       test:
         files: [
@@ -201,7 +219,7 @@ module.exports = (grunt) ->
           dest: ".tmp/styles/"
         ]
 
-    
+
     # not used since Uglify task does concat,
     # but still available if needed
     #concat: {
@@ -209,15 +227,15 @@ module.exports = (grunt) ->
     #        },
     requirejs:
       dist:
-        
+
         # Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
         options:
-          
-          name: "main"          
+
+          name: "main"
           mainConfigFile: yeomanConfig.app + "/../.tmp/scripts/main.js"
           out: yeomanConfig.dist + "/scripts/main.js"
           optimize: "uglify"
-          
+
           # TODO: Figure out how to make sourcemaps work with grunt-usemin
           # https://github.com/yeoman/grunt-usemin/issues/30
           #generateSourceMaps: true,
@@ -226,7 +244,9 @@ module.exports = (grunt) ->
           preserveLicenseComments: false
           useStrict: true
           wrap: true
-    
+          pragmasOnSave:
+            excludeJade: true
+
     replace:
       requirejs:
         src: ".tmp/scripts/main.js"
@@ -243,9 +263,9 @@ module.exports = (grunt) ->
         ,
           from: /window\.CAPI\.uidstamp.+/
           to: 'window.CAPI.uidstamp=\"' + (+new Date) + "\";"
-        ]      
+        ]
 
-    
+
     #uglify2: {} // https://github.com/mishoo/UglifyJS2
     rev:
       dist:
@@ -307,7 +327,6 @@ module.exports = (grunt) ->
     htmlmin:
       dist:
         options: {}
-        
         #removeCommentsFromCDATA: true,
         #                    // https://github.com/yeoman/grunt-usemin/issues/44
         #                    //collapseWhitespace: true,
@@ -324,7 +343,6 @@ module.exports = (grunt) ->
           dest: "<%= yeoman.dist %>"
         ]
 
-    
     # Put files not handled in other tasks here
     copy:
       dist:
@@ -333,7 +351,7 @@ module.exports = (grunt) ->
           dot: true
           cwd: "<%= yeoman.app %>"
           dest: "<%= yeoman.dist %>"
-          src: ["*.{ico,png,txt}", ".htaccess", "images/{,*/}*.{webp,gif}", "styles/fonts/{,*/}*.*"]        
+          src: ["*.{ico,png,txt}", ".htaccess", "images/{,*/}*.{webp,gif}", "styles/fonts/{,*/}*.*"]
         ,
           expand: true
           dot: true
@@ -349,13 +367,20 @@ module.exports = (grunt) ->
           dest: ".tmp/styles/"
           src: "{,*/}*.css"
         ]
+      jade:
+        files:[
+          expand:true
+          src:"*.jade"
+          cwd: "app/scripts/templates"
+          dest: ".tmp/scripts/templates"
+        ]
 
     modernizr:
       devFile: "<%= yeoman.app %>/bower_components/modernizr/modernizr.js"
       outputFile: "<%= yeoman.dist %>/bower_components/modernizr/modernizr.js"
       files: [
-        "<%= yeoman.dist %>/scripts/{,*/}*.js", 
-        "<%= yeoman.dist %>/styles/{,*/}*.css", 
+        "<%= yeoman.dist %>/scripts/{,*/}*.js",
+        "<%= yeoman.dist %>/styles/{,*/}*.css",
         "!<%= yeoman.dist %>/scripts/vendor/*"
       ]
       uglify: true
@@ -363,17 +388,19 @@ module.exports = (grunt) ->
     concurrent:
       server: [
         "compass"
-        "coffee:dist"        
-        "swig:dist"
+        "coffee:dist"
+        "jade:dist"
+        "copy:jade"
         "copy:styles"
       ]
       test: [
         "coffee"
-        "swig:dist"
+        "jade:dist"
         "copy:styles"
       ]
       dist: [
-        "coffee"        
+        "coffee"
+        "copy:jade"
         "compass"
         "copy:styles"
         "imagemin"
@@ -391,7 +418,12 @@ module.exports = (grunt) ->
   grunt.event.on "watch", require("./lib/gruntwatchcoffee").init(grunt, grunt.config.get("coffee.dist.files")[0])
 
   grunt.registerTask "server", (target) ->
-    return grunt.task.run(["build", "open", "proxy", "connect:dist:keepalive"])  if target is "dist"
+    return grunt.task.run([
+      "build"
+      "open"
+      "proxy"
+      "connect:dist:keepalive"
+    ])  if target is "dist"
     grunt.task.run [
       "clean:server"
       "group_vendor"
@@ -404,9 +436,9 @@ module.exports = (grunt) ->
     ]
 
   grunt.registerTask "test", [
-    "clean:server" 
-    "concurrent:test"    
-    "autoprefixer" 
+    "clean:server"
+    "concurrent:test"
+    "autoprefixer"
     "connect:test"
     "mocha"
   ]
@@ -416,21 +448,20 @@ module.exports = (grunt) ->
 
   grunt.registerTask "build", [
     "clean:dist"
-    "swig:dist"
-    "useminPrepare"    
+    "jade:dist"
+    "useminPrepare"
     "group_vendor"
     "concurrent:dist"
     "autoprefixer"
-    "group_requirejs"                
+    "group_requirejs"
     "concat"
     "cssmin"
     "uglify"
     "modernizr"
     "copy:dist"
     "rev"
-    "usemin"    
+    "usemin"
   ]
-  
 
   grunt.registerTask "default", ["jshint", "test", "build"]
   grunt.loadTasks "tasks"

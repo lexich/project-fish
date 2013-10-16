@@ -1,9 +1,12 @@
 define [
-  "Log"  
-], (Log)->  
+  "Log"
+  "jade!templates/test"
+], (Log, templateTest)->
   log = Log.getLogger "app"
-  init:->    
+  init:->
     log.info "Hello"
     $("body").append """
-    <p>Coffeescript works<p>    
+    <p>Coffeescript works<p>
     """
+
+    $("body").append templateTest p: items:["One","Two","Three"]
